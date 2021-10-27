@@ -28,20 +28,23 @@ def get_collect_metrics():
         'https://www.ambito.com/',
         'https://www.mercadolibre.com.ar/']
 
-    with concurrent.futures.ThreadPoolExecutor() as executor:
+    with concurrent.futures.ThreadPoolExecutor(max_workers=100) as executor:
         futures = []
+        time1 = time.time()
         for url in urls:
             futures.append(executor.submit(get_page, page_url=url))
         for future in concurrent.futures.as_completed(futures):
             print(future.result())
+        time2 = time.time()
+        print(f'Took {time2-time1:.2f} s')
 
 
-schedule.every(1).minute.do(get_collect_metrics)
+def run():
+    schedule.every(1).minute.do(get_collect_metrics)
+    while True:
+        schedule.run_pending()
+        time.sleep(1)
 
-# Loop so that the scheduling task
-# keeps on running all time.
-while True:
-    # Checks whether a scheduled task
-    # is pending to run or not
-    schedule.run_pending()
-    time.sleep(1)
+
+if __name__ == '__main__':
+    run()
